@@ -278,7 +278,9 @@ public class MainActivity extends OptionsMenuActivity
         float gZ = z / 9.8f;
 
         float gForce = (float) Math.sqrt(gX * gX + gY * gY + gZ * gZ);
-        if(gForce > 5){
+        if(gForce > 28){
+            //A study that we saw on the web approximates the average acceleration of a person
+            //involved in a crash to be around 28G's so we set this as a throshold for sending an emergency checkin
             Toast.makeText(this,"crash detected sending an emergency check-in",Toast.LENGTH_SHORT).show();
             mSensorManager.unregisterListener(this,mSensor);
             sendEmergencyCheckIn();
