@@ -3,6 +3,10 @@ package rogueone.rogueonemobliecomputing;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Typeface;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.compat.BuildConfig;
@@ -37,7 +41,7 @@ import rogueone.rogueonemobliecomputing.Models.LocationEntry;
 import rogueone.rogueonemobliecomputing.Models.Trip;
 
 public class MainActivity extends OptionsMenuActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+        implements NavigationView.OnNavigationItemSelectedListener,SensorEventListener {
     @BindView(R.id.diary)
     ImageView _diary;
     @BindView(R.id.trips)
@@ -46,6 +50,8 @@ public class MainActivity extends OptionsMenuActivity
     Button _newTrip;
     ProgressDialog progressDialog;
     String email_id;
+    private SensorManager mSensorManager;
+    private Sensor mSensor;
     public OnClickListener diaryListener = new OnClickListener() {
         @Override
         public void onClick(View v) {
@@ -60,7 +66,6 @@ public class MainActivity extends OptionsMenuActivity
                     diaryEntries.putExtra("entries",(Serializable) entries);
                     diaryEntries.putExtra("token", token);
                     startActivity(diaryEntries);
-                    finish();
                     overridePendingTransition(R.anim.push_left_in, R.anim.push_left_out);
                 }
                 @Override
@@ -87,7 +92,6 @@ public class MainActivity extends OptionsMenuActivity
                         tripEntries.putExtra("entries",(Serializable)entries);
                         tripEntries.putExtra("token", token);
                         startActivity(tripEntries);
-                        finish();
                         overridePendingTransition(R.anim.push_left_in, R.anim.push_left_out);
                     }else{
                         try {
@@ -113,7 +117,6 @@ public class MainActivity extends OptionsMenuActivity
             Intent create = new Intent(getApplicationContext(),CreateTripActivity.class);
             create.putExtra("token", token);
             startActivity(create);
-            finish();
             overridePendingTransition(R.anim.push_left_in, R.anim.push_left_out);
         }
     };
@@ -229,6 +232,11 @@ public class MainActivity extends OptionsMenuActivity
         TextView email = (TextView)header.findViewById(R.id.user_email);
         email.setText(email_id);
         setIncognito(navigationView);
+        mSensorManager = (SensorManager) getSystemService(getApplicationContext().SENSOR_SERVICE);
+        mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        if (mSensor != null){
+            mSensorManager.registerListener(this,mSensor,SensorManager.SENSOR_DELAY_NORMAL);
+        }
     }
 
 
@@ -259,5 +267,25 @@ public class MainActivity extends OptionsMenuActivity
         return true;
     }
 
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        float x = event.values[0];
+        float y = event.values[1];
+        float z = event.values[2];
 
+        float gX = x / 9.8f;
+        float gY = y / 9.8f;
+        float gZ = z / 9.8f;
+
+        float gForce = (float) Math.sqrt(gX * gX + gY * gY + gZ * gZ);
+        if(gForce > 5){
+            Toast.makeText(this,"crash detected sending an emergency check-in",Toast.LENGTH_SHORT).show();
+            mSensorManager.unregisterListener(this,mSensor);
+            sendEmergencyCheckIn();
+        }
+    }
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
+    }
 }

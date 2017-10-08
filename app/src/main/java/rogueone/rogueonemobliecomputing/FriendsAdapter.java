@@ -45,6 +45,7 @@ class FriendsAdapter extends RecyclerView.Adapter<FriendsAdapter.ViewHolder> {
                     Intent intent = new Intent(mcontext,ProfileActivity.class);
                     intent.putExtra("token",mToken);
                     intent.putExtra("userEmail",mTextView.getText().toString());
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     mcontext.startActivity(intent);
                 }
             });

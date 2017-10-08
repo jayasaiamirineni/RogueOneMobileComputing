@@ -4,10 +4,7 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
 import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
@@ -15,7 +12,6 @@ import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -38,11 +34,9 @@ import rogueone.rogueonemobliecomputing.Models.LocationEntry;
 import rogueone.rogueonemobliecomputing.Models.MyLocation;
 
 public abstract class OptionsMenuActivity extends AppCompatActivity implements AddressResultReceiver.Receiver,
-ActivityCompat.OnRequestPermissionsResultCallback,SensorEventListener{
+ActivityCompat.OnRequestPermissionsResultCallback{
     protected static APIClient client;
     protected static String token;
-    private SensorManager mSensorManager;
-    private Sensor mSensor;
     protected Location mLastKnownLocation;
     private AddressResultReceiver mResultReceiver;
     private FusedLocationProviderClient mFusedLocationClient;
@@ -57,15 +51,13 @@ ActivityCompat.OnRequestPermissionsResultCallback,SensorEventListener{
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        mSensorManager = (SensorManager) getSystemService(getApplicationContext().SENSOR_SERVICE);
-        mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        if (mSensor != null){
-            mSensorManager.registerListener(this,mSensor,SensorManager.SENSOR_DELAY_NORMAL);
-        }
+
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
+
+
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -293,24 +285,9 @@ ActivityCompat.OnRequestPermissionsResultCallback,SensorEventListener{
         }
 
     }
-    @Override
-    public void onSensorChanged(SensorEvent event) {
-        float x = event.values[0];
-        float y = event.values[1];
-        float z = event.values[2];
 
-        float gX = x / 9.8f;
-        float gY = y / 9.8f;
-        float gZ = z / 9.8f;
 
-        float gForce = (float) Math.sqrt(gX * gX + gY * gY + gZ * gZ);
-        if(gForce > 5){
-            Toast.makeText(this,"crash detected sending an emergency check-in",Toast.LENGTH_LONG).show();
-            sendEmergencyCheckIn();
-        }
-    }
-
-    private void sendEmergencyCheckIn() {
+    protected void sendEmergencyCheckIn() {
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(getApplicationContext());
         if (ActivityCompat.checkSelfPermission(this,
                 android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
@@ -366,11 +343,8 @@ ActivityCompat.OnRequestPermissionsResultCallback,SensorEventListener{
                 });
     }
 
-    @Override
-    public void onAccuracyChanged(Sensor sensor, int accuracy) {
 
-    }
-    @Override
+   /* @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
@@ -380,5 +354,5 @@ ActivityCompat.OnRequestPermissionsResultCallback,SensorEventListener{
                 startActivity(new Intent(getApplicationContext(),MainActivity.class));
             }
         });
-    }
+    }*/
 }
